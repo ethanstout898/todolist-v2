@@ -23,15 +23,15 @@ const itemsSchema = new mongoose.Schema({
 const Item = mongoose.model("item", itemsSchema);
 
 const item1 = new Item({
-  name: "Welcome to your todolist!"
+  name: "Welcome to your notes!"
 });
 
 const item2 = new Item({
-  name: "Hit the + button to add an item."
+  name: "Hit the + button to add a note."
 });
 
 const item3 = new Item({
-  name: "<-- Hit this to delete an item."
+  name: "<-- Hit this to delete a note."
 });
 
 const defaultItems = [item1, item2, item3];
