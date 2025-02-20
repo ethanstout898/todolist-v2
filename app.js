@@ -9,12 +9,19 @@ require("dotenv").config();
 
 const app = express();
 
+const RateLimit = require("express-rate-limit");
+const limiter = RateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+});
+
 mongoose.set("strictQuery", false);
 
 app.set('view engine', 'ejs');
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static("public"));
+app.use(limiter);
 
 mongoose.connect("mongodb+srv://admin:"+process.env.DB_PASSWORD+"@"+process.env.CLUSTER+".mongodb.net/"+process.env.DB_NAME, {useNewUrlParser: true});
 
@@ -79,7 +86,12 @@ app.get("/:customListName", function(req, res) {
           items: defaultItems
         });
         list.save();
-        res.redirect("/" + customListName);
+        let target = req.query["target"];
+        if(isLocalUrl(target)) {
+          res.redirect("/" + customListName);
+        } else {
+          res.redirect("/");
+        }
       } else {
         res.render("list", {listTitle: foundList.name, newListItems: foundList.items});
       }
@@ -101,10 +113,15 @@ app.post("/", function(req, res){
     item.save();
     res.redirect("/");
   } else {
-    List.findOne({name: listName}, function(err, foundList) {
+    List.findOne({name: {$eq: listName}}, function(err, foundList) {
       foundList.items.push(item);
       foundList.save();
-      res.redirect("/" + listName);
+      let target = req.query["target"];
+      if(isLocalUrl(target)) {
+        res.redirect("/" + listName);
+      } else {
+        res.redirect("/");
+      }
     });
   }
 
@@ -115,13 +132,18 @@ app.post("/delete", function(req, res) {
   const listName = req.body.listName;
 
   if(listName === "Notes") {
-    Item.findByIdAndRemove(checkedItemId, function(err) {
+    Item.findByIdAndRemove({$eq: checkedItemId}, function(err) {
       console.log(err);
     });
     res.redirect("/");
   } else {
-    List.findOneAndUpdate({name: listName}, {$pull: {items: {_id: checkedItemId}}}, function(err, foundList) {
-      res.redirect("/" + listName);
+    List.findOneAndUpdate({name: {$eq: listName}}, {$pull: {items: {_id: {$eq: checkedItemId}}}}, function(err, foundList) {
+      let target = req.query["target"];
+      if(isLocalUrl(target)) {
+        res.redirect("/" + listName);
+      } else {
+        res.redirect("/");
+      }
     });
   }
 });
@@ -129,6 +151,17 @@ app.post("/delete", function(req, res) {
 app.get("/about", function(req, res){
   res.render("about");
 });
+
+function isLocalUrl(path) {
+  try {
+    return (
+      // TODO: consider substituting your own domain for example.com
+      new URL(path, "https://work-notes.onrender.com").origin === "https://work-notes.onrender.com"
+    );
+  } catch (e) {
+    return false;
+  }
+}
 
 let port = process.env.PORT;
 if(port == null || port == "") {
