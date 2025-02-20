@@ -86,12 +86,8 @@ app.get("/:customListName", function(req, res) {
           items: defaultItems
         });
         list.save();
-        let target = req.query["target"];
-        if(isLocalUrl(target)) {
-          res.redirect("/" + customListName);
-        } else {
-          res.redirect("/");
-        }
+        res.redirect("/" + customListName);
+
       } else {
         res.render("list", {listTitle: foundList.name, newListItems: foundList.items});
       }
@@ -116,12 +112,7 @@ app.post("/", function(req, res){
     List.findOne({name: {$eq: listName}}, function(err, foundList) {
       foundList.items.push(item);
       foundList.save();
-      let target = req.query["target"];
-      if(isLocalUrl(target)) {
-        res.redirect("/" + listName);
-      } else {
-        res.redirect("/");
-      }
+      res.redirect("/" + listName);
     });
   }
 
@@ -131,37 +122,22 @@ app.post("/delete", function(req, res) {
   const checkedItemId = req.body.checkbox;
   const listName = req.body.listName;
 
+  if (typeof checkedItemId !== "string") {
+    res.status(400).json({ status: "error", message: "Invalid item ID" });
+    return;
+  }
+
   if(listName === "Notes") {
-    Item.findByIdAndRemove({$eq: checkedItemId}, function(err) {
+    Item.findByIdAndRemove(checkedItemId, function(err) {
       console.log(err);
     });
     res.redirect("/");
   } else {
     List.findOneAndUpdate({name: {$eq: listName}}, {$pull: {items: {_id: {$eq: checkedItemId}}}}, function(err, foundList) {
-      let target = req.query["target"];
-      if(isLocalUrl(target)) {
-        res.redirect("/" + listName);
-      } else {
-        res.redirect("/");
-      }
+      res.redirect("/" + listName);
     });
   }
 });
-
-app.get("/about", function(req, res){
-  res.render("about");
-});
-
-function isLocalUrl(path) {
-  try {
-    return (
-      // TODO: consider substituting your own domain for example.com
-      new URL(path, "https://work-notes.onrender.com").origin === "https://work-notes.onrender.com"
-    );
-  } catch (e) {
-    return false;
-  }
-}
 
 let port = process.env.PORT;
 if(port == null || port == "") {
