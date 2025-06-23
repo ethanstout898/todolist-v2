@@ -53,47 +53,44 @@ const listSchema = mongoose.Schema({
 const List = mongoose.model("list", listSchema);
 
 app.get("/", function(req, res) {
-
-  Item.find({}, function(err, foundItems) {
-    
+  Item.find() 
+  .then(foundItems => {
     if(foundItems.length === 0) {
-      Item.insertMany(defaultItems, function(err){
-        if(err) {
-          console.log(err);
-        } else {
-          console.log("Items successfully added to todolistDB");
-        }
+      Item.insertMany(defaultItems)
+      .then(() => {
+        console.log("Items successfully added to todolistDB");
         res.redirect("/");
+      })
+      .catch(err => {
+        console.log(err);
       });
     } else {
-      if(err) {
-        console.log(err);
-      } else {
-        res.render("list", {listTitle: "Notes", newListItems: foundItems});
-      }
+      res.render("list", {listTitle: "Notes", newListItems: foundItems});
     }
+  })
+  .catch(err => {
+    console.log(err);
   });
 });
 
 app.get("/:customListName", function(req, res) {
-  
   const customListName = _.capitalize(req.params.customListName);
-  List.findOne({name: customListName}, function(err, foundList){
-    if(!err) {
-      if(!foundList) {
-        const list = List({
-          name: customListName,
-          items: defaultItems
-        });
-        list.save();
-        res.redirect("/" + customListName);
-
-      } else {
-        res.render("list", {listTitle: foundList.name, newListItems: foundList.items});
-      }
+  List.findOne({name: customListName})
+  .then(foundList => {
+    if(!foundList) {
+      const list = List({
+        name: customListName,
+        items: defaultItems
+      });
+      list.save();
+      res.redirect("/" + customListName);
+    } else {
+      res.render("list", {listTitle: foundList.name, newListItems: foundList.items});
     }
-  });
-  
+  })
+  .catch(err => {
+    console.log(err);
+  })
 });
 
 app.post("/", function(req, res){
@@ -109,13 +106,16 @@ app.post("/", function(req, res){
     item.save();
     res.redirect("/");
   } else {
-    List.findOne({name: {$eq: listName}}, function(err, foundList) {
+    List.findOne({name: {$eq: listName}})
+    .then(foundList => {
       foundList.items.push(item);
       foundList.save();
       res.redirect("/" + listName);
+    })
+    .catch(err => {
+      console.log(err);
     });
   }
-
 });
 
 app.post("/delete", function(req, res) {
@@ -128,13 +128,20 @@ app.post("/delete", function(req, res) {
   }
 
   if(listName === "Notes") {
-    Item.findByIdAndRemove(checkedItemId, function(err) {
+    Item.findByIdAndDelete(checkedItemId)
+    .then(() => {
+      res.redirect("/");
+    })
+    .catch(err => {
       console.log(err);
     });
-    res.redirect("/");
   } else {
-    List.findOneAndUpdate({name: {$eq: listName}}, {$pull: {items: {_id: {$eq: checkedItemId}}}}, function(err, foundList) {
+    List.findOneAndUpdate({name: {$eq: listName}}, {$pull: {items: {_id: {$eq: checkedItemId}}}})
+    .then(() => {
       res.redirect("/" + listName);
+    })
+    .catch(err => {
+      console.log(err);
     });
   }
 });
