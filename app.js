@@ -1,7 +1,6 @@
 //jshint esversion:6
 
 const express = require("express");
-const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const punycode = require("punycode/");
 const _ = require("lodash");
@@ -19,11 +18,11 @@ mongoose.set("strictQuery", false);
 
 app.set('view engine', 'ejs');
 
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(express.urlencoded({extended: true}));
 app.use(express.static("public"));
 app.use(limiter);
 
-mongoose.connect("mongodb+srv://admin:"+process.env.DB_PASSWORD+"@"+process.env.CLUSTER+".mongodb.net/"+process.env.DB_NAME, {useNewUrlParser: true});
+mongoose.connect("mongodb+srv://admin:"+process.env.DB_PASSWORD+"@"+process.env.CLUSTER+".mongodb.net/"+process.env.DB_NAME);
 
 const itemsSchema = new mongoose.Schema({
   name: String
@@ -148,7 +147,7 @@ app.post("/delete", function(req, res) {
 
 let port = process.env.PORT;
 if(port == null || port == "") {
-  port = 3000;
+  port = 8000;
 };
 
 app.listen(port, function() {
