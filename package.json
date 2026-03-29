@@ -12,15 +12,17 @@
     "node": ">=16.16.0"
   },
   "dependencies": {
+    "brace-expansion": "^5.0.5",
     "dotenv": "^17.2.3",
     "ejs": "^4.0.1",
     "express": "^5.2.1",
-    "express-rate-limit": "^8.2.1",
+    "express-rate-limit": "^8.3.1",
     "filelist": "^1.0.4",
     "jake": "^10.9.4",
     "lodash": "^4.17.23",
     "minimatch": "^10.2.3",
     "mongoose": "^9.0.0",
+    "path-to-regexp": "^8.4.0",
     "qs": "^6.15.0"
   },
   "overrides": {
