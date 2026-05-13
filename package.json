@@ -16,7 +16,7 @@
     "dotenv": "^17.2.3",
     "ejs": "^4.0.1",
     "express": "^5.2.1",
-    "express-rate-limit": "^8.3.1",
+    "express-rate-limit": "^8.5.1",
     "filelist": "^1.0.4",
     "ip-address": "^10.2.0",
     "jake": "^10.9.4",
